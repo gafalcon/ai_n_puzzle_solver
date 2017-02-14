@@ -46,13 +46,13 @@ class State():
         childs = []
         x_0, y_0 = self.find_empty_space()
         if x_0 > 0: #row is not first one
-            childs.append(self.swap_copy(x_0, y_0, x_0 - 1, y_0)) #up
+            childs.append(State(self.swap_copy(x_0, y_0, x_0 - 1, y_0), father=self)) #up
         if x_0 < 2: #row is not last one
-            childs.append(self.swap_copy(x_0, y_0, x_0 + 1, y_0)) #down
+            childs.append(State(self.swap_copy(x_0, y_0, x_0 + 1, y_0), father=self)) #down
         if y_0 > 0: #col is not first one
-            childs.append(self.swap_copy(x_0, y_0, x_0, y_0 - 1)) #left
+            childs.append(State(self.swap_copy(x_0, y_0, x_0, y_0 - 1), father=self)) #left
         if y_0 < 2: #col is not last one
-            childs.append(self.swap_copy(x_0, y_0, x_0, y_0 + 1)) #right
+            childs.append(State(self.swap_copy(x_0, y_0, x_0, y_0 + 1), father=self)) #right
 
         if method == "dfs":
             childs.reverse()
@@ -100,8 +100,7 @@ class Solver():
                 return True
 
             self.nodes_expanded += 1
-            for neighbor in state.get_childs(self.search_method):
-                child_state = State(neighbor)
+            for child_state in state.get_childs(self.search_method):
                 if not frontier.contains(child_state) and not explored.contains(child_state):
                     frontier.add(child_state)
                     print("************* Child appended: \n",child_state)
