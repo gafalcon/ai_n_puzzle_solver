@@ -94,9 +94,8 @@ class Heap(object):
 
     def pop(self):
         """Removes elem from heap"""
-        item =  heappop(self._data)#[1]
-        print(item)
-        return item[1]
+        return heappop(self._data)[1]
+
     def is_empty(self):
         """Checks if empty"""
         return len(self._data) == 0

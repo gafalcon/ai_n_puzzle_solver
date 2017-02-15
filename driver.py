@@ -8,7 +8,7 @@ SEARCH_STRUCT = {
     "bfs": structs.Queue,
     "dfs": structs.Stack,
     "ast": structs.Heap,
-    "queue": list
+    "ida": list
 }
 
 
@@ -116,7 +116,6 @@ class Solver():
 
             self.max_frontier_size = max(self.max_frontier_size, frontier.size())
             ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
-            # print("Ram usage:", ram_usage)
             self.max_ram_usage = max(self.max_ram_usage, ram_usage)
 
 
@@ -146,6 +145,16 @@ class Solver():
         print("max_search_depth:", self.max_search_depth)
         print("running_time:", elapsed_time)
         print("max_ram_usage:", self.max_ram_usage)
+        # with open("output.txt", "w") as output_file:
+        #     output_file.write("path_to_goal: {}\n".format(actions))
+        #     output_file.write("cost_of_path: {}\n".format(len(actions)))
+        #     output_file.write("nodes_expanded: {}\n".format(self.nodes_expanded))
+        #     output_file.write("fringe_size: {}\n".format(self.frontier_size))
+        #     output_file.write("max_fringe_size: {}\n".format(self.max_frontier_size))
+        #     output_file.write("search_depth: {}\n".format(last_state.depth))
+        #     output_file.write("max_search_depth: {}\n".format(self.max_search_depth))
+        #     output_file.write("running_time: {}\n".format(elapsed_time))
+        #     output_file.write("max_ram_usage: {}\n".format(self.max_ram_usage))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Solve the n-puzzle game")
