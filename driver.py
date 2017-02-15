@@ -13,7 +13,7 @@ SEARCH_STRUCT = {
 
 class State():
     """Represents a state of the game"""
-    def __init__(self, board, is_array=True, father=None):
+    def __init__(self, board, is_array=True, parent=None, action=None):
         "Represents a board state"
         if is_array:
             self.state = board
@@ -22,7 +22,12 @@ class State():
             self.state = ((board[0], board[1], board[2]),
                           (board[3], board[4], board[5]),
                           (board[6], board[7], board[8]))
-        self.father = father
+        self.parent = parent
+        self.action = action
+        if self.parent:
+            self.depth = self.parent.depth + 1
+        else:
+            self.depth = 0
 
     def find_empty_space(self):
         """Finds location of empty tile"""
@@ -46,13 +51,13 @@ class State():
         childs = []
         x_0, y_0 = self.find_empty_space()
         if x_0 > 0: #row is not first one
-            childs.append(State(self.swap_copy(x_0, y_0, x_0 - 1, y_0), father=self)) #up
+            childs.append(State(self.swap_copy(x_0, y_0, x_0 - 1, y_0), parent=self, action="Up"))
         if x_0 < 2: #row is not last one
-            childs.append(State(self.swap_copy(x_0, y_0, x_0 + 1, y_0), father=self)) #down
+            childs.append(State(self.swap_copy(x_0, y_0, x_0 + 1, y_0), parent=self, action="Down"))
         if y_0 > 0: #col is not first one
-            childs.append(State(self.swap_copy(x_0, y_0, x_0, y_0 - 1), father=self)) #left
+            childs.append(State(self.swap_copy(x_0, y_0, x_0, y_0 - 1), parent=self, action="Left"))
         if y_0 < 2: #col is not last one
-            childs.append(State(self.swap_copy(x_0, y_0, x_0, y_0 + 1), father=self)) #right
+            childs.append(State(self.swap_copy(x_0, y_0, x_0, y_0 + 1), parent=self, action="Right"))
 
         if method == "dfs":
             childs.reverse()
@@ -82,6 +87,7 @@ class Solver():
         self.frontier_size = 0
         self.max_frontier_size = 0
         self.max_ram_usage = 0
+        self.max_search_depth = 0
 
     def search(self):
         """Finds answer"""
@@ -92,39 +98,46 @@ class Solver():
             state = frontier.pop()
             explored.add(state)
 
-            print("State to explore")
-            print(state)
             if state.is_goal_test():
-                print("Goal test found!")
                 self.frontier_size = frontier.size()
-                return True
+                return state
 
             self.nodes_expanded += 1
             for child_state in state.get_childs(self.search_method):
                 if not frontier.contains(child_state) and not explored.contains(child_state):
+                    self.max_search_depth = max(self.max_search_depth, child_state.depth)
                     frontier.add(child_state)
-                    print("************* Child appended: \n",child_state)
 
             self.max_frontier_size = max(self.max_frontier_size, frontier.size())
             ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
             # print("Ram usage:", ram_usage)
             self.max_ram_usage = max(self.max_ram_usage, ram_usage)
 
-        return False
 
+    def get_actions(self, last_state):
+        """prints path from initial state to goal"""
+        state = last_state
+        actions = []
+        while not state is None:
+            if state.action:
+                actions.append(state.action)
+            state = state.parent
+        actions.reverse()
+        return actions
 
     def begin_search(self):
         """Track memory and time consumption"""
         begin_time = time.process_time()
-        self.search()
+        last_state = self.search()
+        actions = self.get_actions(last_state)
         elapsed_time = time.process_time() - begin_time
-        print("path_to_goal:")
-        print("cost_of_path:")
+        print("path_to_goal:", actions)
+        print("cost_of_path:", len(actions))
         print("nodes_expanded:", self.nodes_expanded)
         print("fringe_size:", self.frontier_size)
         print("max_fringe_size:", self.max_frontier_size)
-        print("search_depth:")
-        print("max_search_depth:")
+        print("search_depth:", last_state.depth)
+        print("max_search_depth:", self.max_search_depth)
         print("running_time:", elapsed_time)
         print("max_ram_usage:", self.max_ram_usage)
 
