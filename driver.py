@@ -7,27 +7,10 @@ import structs
 SEARCH_STRUCT = {
     "bfs": structs.Queue,
     "dfs": structs.Stack,
-    "ast": list,
+    "ast": structs.Heap,
     "queue": list
 }
 
-def sum_manhattan_distance(state):
-    """Sum of manhattan distances of each tile in state game"""
-    distance = 0
-    for i in range(0, len(state)):
-        for j in range(0, len(state[i])):
-            if state[i][j] != 0:
-                distance += manhattan_distance(i, j, state)
-    return distance
-
-def manhattan_distance(i, j, state):
-    """Manhattan distance of a misplaced tile"""
-    i_right, j_right = tile_location(state[i][j])
-    return abs(i_right - i) + abs(j_right - j)
-
-def tile_location(tile_num):
-    """Returns the correct position of a tile number"""
-    return (int(tile_num/3), tile_num % 3)
 
 class State():
     """Represents a state of the game"""
@@ -93,6 +76,9 @@ class State():
 
     def __repr__(self):
         return self.__str__()
+
+    def __lt__(self, other):
+        return self.state.__lt__(other.state)
 
 class Solver():
     """Solves the game"""

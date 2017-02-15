@@ -57,12 +57,33 @@ class Queue(object):
         """Size of queue"""
         return len(self._data)
 
+
+
+def sum_manhattan_distance(state):
+    """Sum of manhattan distances of each tile in state game"""
+    distance = 0
+    for i in range(0, len(state)):
+        for j in range(0, len(state[i])):
+            if state[i][j] != 0:
+                distance += manhattan_distance(i, j, state)
+    return distance
+
+def manhattan_distance(i, j, state):
+    """Manhattan distance of a misplaced tile"""
+    i_right, j_right = tile_location(state[i][j])
+    return abs(i_right - i) + abs(j_right - j)
+
+def tile_location(tile_num):
+    """Returns the correct position of a tile number"""
+    return (int(tile_num/3), tile_num % 3)
+
 class Heap(object):
     """Represents a heap"""
-    def __init__(self, initial=None, key=lambda x: x):
-        self.key = key
+    def __init__(self, initial=None):
+        # self.key = key
+        self.key = lambda x: sum_manhattan_distance(x.state) + x.depth
         if initial:
-            self._data = [(key(item), item) for item in initial]
+            self._data = [(self.key(item), item) for item in initial]
             heapify(self._data)
         else:
             self._data = []
@@ -73,11 +94,12 @@ class Heap(object):
 
     def pop(self):
         """Removes elem from heap"""
-        return heappop(self._data)[1]
-
+        item =  heappop(self._data)#[1]
+        print(item)
+        return item[1]
     def is_empty(self):
         """Checks if empty"""
-        return self._data
+        return len(self._data) == 0
 
     def contains(self, elem):
         """Checks if heap contains elem"""
