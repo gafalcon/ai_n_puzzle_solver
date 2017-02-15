@@ -92,11 +92,12 @@ class Solver():
     def search(self):
         """Finds answer"""
         frontier = SEARCH_STRUCT[self.search_method]([self.init_state])
-        explored = structs.Stack()#[]#set()
+        frontier_set = set()
+        explored = set()
 
         while not frontier.is_empty():
             state = frontier.pop()
-            explored.add(state)
+            explored.add(state.state)
 
             if state.is_goal_test():
                 self.frontier_size = frontier.size()
@@ -104,9 +105,10 @@ class Solver():
 
             self.nodes_expanded += 1
             for child_state in state.get_childs(self.search_method):
-                if not frontier.contains(child_state) and not explored.contains(child_state):
+                if not child_state.state in frontier_set and not child_state.state in explored:
                     self.max_search_depth = max(self.max_search_depth, child_state.depth)
                     frontier.add(child_state)
+                    frontier_set.add(child_state.state)
 
             self.max_frontier_size = max(self.max_frontier_size, frontier.size())
             ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
