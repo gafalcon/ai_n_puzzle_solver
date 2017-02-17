@@ -8,9 +8,14 @@ SEARCH_STRUCT = {
     "bfs": structs.Queue,
     "dfs": structs.Stack,
     "ast": structs.Heap,
-    "ida": structs.Stack
+    "ida": structs.Heap
 }
-
+def h(state):
+    """heuristic for state"""
+    return structs.sum_manhattan_distance(state.state)
+def f(state):
+    """Total cost for state"""
+    return h(state) + state.depth
 
 class State():
     """Represents a state of the game"""
@@ -86,14 +91,14 @@ class Solver():
         "docstring"
         self.init_state = State(board, False)
         self.search_method = method
-
+        self.bound = 0
         self.nodes_expanded = 0
         self.frontier_size = 0
         self.max_frontier_size = 0
         self.max_ram_usage = 0
         self.max_search_depth = 0
 
-    def search(self, max_depth=-1):
+    def search(self):
         """Finds answer"""
         frontier = SEARCH_STRUCT[self.search_method]([self.init_state])
         frontier_set = set()
@@ -108,12 +113,18 @@ class Solver():
                 return state
 
             self.nodes_expanded += 1
-            if state.depth != max_depth:
-                for child_state in state.get_childs(self.search_method):
-                    if not child_state.state in frontier_set and not child_state.state in explored:
-                        self.max_search_depth = max(self.max_search_depth, child_state.depth)
-                        frontier.add(child_state)
-                        frontier_set.add(child_state.state)
+
+            if self.search_method == "ida":
+                cost = f(state)
+                if cost > self.bound:
+                    self.bound = cost
+                    return
+
+            for child_state in state.get_childs(self.search_method):
+                if not child_state.state in frontier_set and not child_state.state in explored:
+                    self.max_search_depth = max(self.max_search_depth, child_state.depth)
+                    frontier.add(child_state)
+                    frontier_set.add(child_state.state)
 
             self.max_frontier_size = max(self.max_frontier_size, frontier.size())
             ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
@@ -137,12 +148,11 @@ class Solver():
         # last_state = self.search()
         last_state = None
         if self.search_method == "ida":
-            depth = 0
+            self.bound = h(self.init_state)
             while True:
-                last_state = self.search(depth)
+                last_state = self.search()
                 if last_state:
                     break
-                depth += 1
         else:
             last_state = self.search()
 
