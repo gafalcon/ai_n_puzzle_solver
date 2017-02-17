@@ -8,7 +8,7 @@ SEARCH_STRUCT = {
     "bfs": structs.Queue,
     "dfs": structs.Stack,
     "ast": structs.Heap,
-    "ida": list
+    "ida": structs.Stack
 }
 
 
@@ -93,12 +93,12 @@ class Solver():
         self.max_ram_usage = 0
         self.max_search_depth = 0
 
-    def search(self):
+    def search(self, max_depth=-1):
         """Finds answer"""
         frontier = SEARCH_STRUCT[self.search_method]([self.init_state])
         frontier_set = set()
         explored = set()
-
+        # depth = self.init_state.depth
         while not frontier.is_empty():
             state = frontier.pop()
             explored.add(state.state)
@@ -108,11 +108,12 @@ class Solver():
                 return state
 
             self.nodes_expanded += 1
-            for child_state in state.get_childs(self.search_method):
-                if not child_state.state in frontier_set and not child_state.state in explored:
-                    self.max_search_depth = max(self.max_search_depth, child_state.depth)
-                    frontier.add(child_state)
-                    frontier_set.add(child_state.state)
+            if state.depth != max_depth:
+                for child_state in state.get_childs(self.search_method):
+                    if not child_state.state in frontier_set and not child_state.state in explored:
+                        self.max_search_depth = max(self.max_search_depth, child_state.depth)
+                        frontier.add(child_state)
+                        frontier_set.add(child_state.state)
 
             self.max_frontier_size = max(self.max_frontier_size, frontier.size())
             ram_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
@@ -133,7 +134,18 @@ class Solver():
     def begin_search(self):
         """Track memory and time consumption"""
         begin_time = time.process_time()
-        last_state = self.search()
+        # last_state = self.search()
+        last_state = None
+        if self.search_method == "ida":
+            depth = 0
+            while True:
+                last_state = self.search(depth)
+                if last_state:
+                    break
+                depth += 1
+        else:
+            last_state = self.search()
+
         actions = self.get_actions(last_state)
         elapsed_time = time.process_time() - begin_time
         print("path_to_goal:", actions)
